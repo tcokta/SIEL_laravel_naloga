@@ -1,0 +1,25 @@
+services:
+  app:
+    image: php:8.3-cli
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_KEY: ""
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/database/database.sqlite
+    command: >
+      sh -c "
+        apt-get update -q && apt-get install -yq unzip curl libsqlite3-dev &&
+        docker-php-ext-install pdo pdo_sqlite &&
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&
+        composer install --no-interaction --prefer-dist &&
+        touch database/database.sqlite &&
+        php artisan key:generate &&
+        php artisan migrate --force &&
+        php artisan db:seed --force &&
+        php artisan serve --host=0.0.0.0 --port=8000
+      "
